@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Resume Builder - ATS Checker | Shahmeer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f1f5f9;display:flex;min-height:100vh}
+.left{width:42%;background:#fff;padding:20px;overflow-y:auto;height:100vh;border-right:1px solid #e5e7eb}
+.right{width:58%;background:#e2e8f0;padding:25px;display:flex;flex-direction:column;align-items:center;gap:15px}
+h2{font-size:20px;color:#0f172a;margin:18px 0 10px}
+label{font-size:12px;font-weight:600;color:#334155;display:block;margin:8px 0 4px}
+input,textarea,select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px}
+textarea{resize:vertical;min-height:70px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:11px 18px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+.btn-green{background:#16a34a;color:#fff;width:100%;margin-top:10px}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-blue{background:#2563eb;color:#fff}
+.ats-box{background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:14px;margin:15px 0;text-align:center}
+.ats-score{font-size:42px;font-weight:800;color:#16a34a}
+.ats-bar{height:10px;background:#dcfce7;border-radius:20px;margin-top:8px;overflow:hidden}
+.ats-fill{height:100%;background:#16a34a;width:0%;transition:0.5s}
+.resume{width:100%;max-width:700px;background:#fff;padding:30px;box-shadow:0 10px 30px rgba(0,0,0,0.15);min-height:800px;color:#111}
+.resume h1{font-size:28px;margin-bottom:2px}.resume.sub{color:#555;font-size:13px;margin-bottom:14px}
+.resume h3{font-size:14px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #111;padding-bottom:4px;margin:16px 0 8px}
+.resume p,.resume li{font-size:13px;line-height:1.5}
+.actions{display:flex;gap:10px}
+.tag{display:inline-block;background:#e0f2fe;color:#0c4a6e;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin:3px}
+@media(max-width:950px){body{flex-direction:column}.left,.right{width:100%;height:auto}.right{padding:12px}}
+</style>
+</head>
+<body>
+
+<div class="left">
+<h1 style="font-size:22px">📄 AI Resume Builder<br><span style="font-size:12px;color:#64748b">ATS Checker + PDF Download</span></h1>
+
+<div class="ats-box">
+<div style="font-size:13px;font-weight:600">Your ATS Score</div>
+<div class="ats-score" id="atsScore">0%</div>
+<div style="font-size:11px;color:#555" id="atsTip">Fill details to check score</div>
+<div class="ats-bar"><div class="ats-fill" id="atsFill"></div></div>
+</div>
+
+<h2>Personal Info</h2>
+<input id="name" placeholder="Full Name - e.g. Shahmeer Ahmed" oninput="update()">
+<div class="row"><input id="role" placeholder="Role - e.g. Frontend Developer" oninput="update()"><input id="phone" placeholder="Phone - 0312-2252118" oninput="update()"></div>
+<input id="email" placeholder="Email" oninput="update()"><input id="location" placeholder="Location - Karachi, Pakistan" oninput="update()">
+<input id="linkedin" placeholder="LinkedIn / GitHub Link" oninput="update()">
+
+<h2>Professional Summary</h2>
+<textarea id="summary" placeholder="2-3 lines - e.g. BSCS 7th Sem student passionate about Frontend..." oninput="update()"></textarea>
+
+<h2>Education</h2>
+<textarea id="education" placeholder="BSCS 7th Semester - [University], 2022-2026&#10;Intermediate - [College]" oninput="update()"></textarea>
+
+<h2>Experience / Projects</h2>
+<textarea id="exp" placeholder="Shah Store Website - Built e-commerce site for local store, HTML/CSS/JS, live at...&#10;Portfolio Website - Personal portfolio with 3 live projects" oninput="update()"></textarea>
+
+<h2>Skills (comma se alag)</h2>
+<input id="skills" placeholder="HTML, CSS, JavaScript, GitHub, Responsive Design" oninput="update()">
+
+<h2>Extra (Certifications)</h2>
+<textarea id="extra" placeholder="Google Digital Marketing, Freelancing course, etc" oninput="update()"></textarea>
+
+<button class="btn btn-green" onclick="downloadPDF()">⬇️ Download PDF Resume</button>
+<p style="font-size:11px;color:#777;text-align:center;margin-top:8px">Public use - No data saved, 100% free</p>
+</div>
+
+<div class="right">
+<div class="actions">
+<button class="btn btn-dark" onclick="downloadPDF()">Download PDF</button>
+<button class="btn btn-blue" onclick="window.print()">Print</button>
+</div>
+
+<div class="resume" id="resume">
+<h1 id="rName">Your Name</h1>
+<div class="sub"><span id="rRole">Frontend Developer</span> | <span id="rPhone">0312-XXXXXXX</span> | <span id="rEmail">email@gmail.com</span> | <span id="rLoc">Karachi</span><br><span id="rLink"></span></div>
+
+<h3>Professional Summary</h3>
+<p id="rSummary">BSCS student passionate about web development...</p>
+
+<h3>Education</h3>
+<p id="rEdu" style="white-space:pre-line"></p>
+
+<h3>Experience & Projects</h3>
+<p id="rExp" style="white-space:pre-line"></p>
+
+<h3>Skills</h3>
+<div id="rSkills"></div>
+
+<h3>Certifications / Extra</h3>
+<p id="rExtra" style="white-space:pre-line"></p>
+</div>
+</div>
+
+<script>
+function update(){
+const v=id=>document.getElementById(id).value||'';
+document.getElementById('rName').innerText=v('name')||'Your Name';
+document.getElementById('rRole').innerText=v('role')||'Frontend Developer';
+document.getElementById('rPhone').innerText=v('phone')||'0312-XXXXXXX';
+document.getElementById('rEmail').innerText=v('email')||'email@gmail.com';
+document.getElementById('rLoc').innerText=v('location')||'Karachi';
+document.getElementById('rLink').innerText=v('linkedin');
+document.getElementById('rSummary').innerText=v('summary')||'Write 2-3 lines about yourself...';
+document.getElementById('rEdu').innerText=v('education');
+document.getElementById('rExp').innerText=v('exp');
+document.getElementById('rExtra').innerText=v('extra');
+let skills=v('skills').split(',').filter(s=>s.trim());
+document.getElementById('rSkills').innerHTML=skills.map(s=>`<span class="tag">${s.trim()}</span>`).join('');
+calcATS();
+}
+
+function calcATS(){
+let score=0;let tips=[];
+let name=document.getElementById('name').value;
+let email=document.getElementById('email').value;
+let summary=document.getElementById('summary').value;
+let edu=document.getElementById('education').value;
+let exp=document.getElementById('exp').value;
+let skills=document.getElementById('skills').value;
+
+if(name.length>3)score+=10; else tips.push('Add full name');
+if(email.includes('@'))score+=10; else tips.push('Add email');
+if(summary.length>50)score+=15; else tips.push('Write 50+ chars summary');
+if(edu.length>10)score+=15; else tips.push('Add education');
+if(exp.length>30)score+=20; else tips.push('Add projects/experience');
+if(skills.split(',').length>=3)score+=15; else tips.push('Add 3+ skills');
+if(summary.toLowerCase().includes('frontend')||skills.toLowerCase().includes('html'))score+=15;
+
+if(score>100)score=100;
+document.getElementById('atsScore').innerText=score+'%';
+document.getElementById('atsFill').style.width=score+'%';
+document.getElementById('atsTip').innerText= tips.length? 'Fix: '+tips[0] : 'Great! ATS Ready ✅ - Recruiters will love it';
+document.getElementById('atsScore').style.color= score<50?'#dc2626': score<80?'#f59e0b':'#16a34a';
+document.getElementById('atsFill').style.background= score<50?'#dc2626': score<80?'#f59e0b':'#16a34a';
+}
+
+function downloadPDF(){
+const el=document.getElementById('resume');
+const name=document.getElementById('name').value||'Resume';
+html2pdf().set({margin:0.3,filename:name.replace(/\s+/g,'_')+'_Resume.pdf',html2canvas:{scale:2},jsPDF:{unit:'in',format:'a4'}}).from(el).save();
+}
+update();
+</script>
+</body>
+</html>
